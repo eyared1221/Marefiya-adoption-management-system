@@ -8,19 +8,11 @@ export const createStaff = asyncHandler(async (req, res) => {
     const newStaff = await staff.create(req.body);
     res.status(200).json({
       status: 'success',
-      message: 'Child Profile Created Successfully',
+      message: 'Staff Created Successfully',
       data: {
         staff: newStaff,
       },
     });
-  
-      res.status(200).json({
-        status: 'success',
-        message: 'Staff Created Successfully',
-        data: {
-          staff: newStaff,
-        },
-      }); 
     
     } catch (error) {
       console.log(error);
@@ -54,12 +46,13 @@ export const getSingleStaff = asyncHandler(async (req, res) => {
 
 export const getStaff = asyncHandler(async (req, res) => {
   try {
-    const staffs = await staff.find();
+    const staffs = await staff.find().select('staffId firstName middleName lastName email gender role phoneNumber');
 
     res.status(200).json({
       status: 'success',
+      message: 'Staff fetched Successfully',
       data: {
-        staffs,
+        staff: staffs,
       },
     });
   } catch (error) {

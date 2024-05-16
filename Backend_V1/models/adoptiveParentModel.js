@@ -2,8 +2,14 @@ import mongoose from 'mongoose';
 
 const adoptiveParentSchema = new mongoose.Schema({
 
+    adoptiveParentId: {
+        type: String,
+    },
     // Foster father's detail
     f_firstName: {
+        type: String,
+    },
+    f_middleName: {
         type: String,
     },
     f_lastName: {
@@ -25,17 +31,23 @@ const adoptiveParentSchema = new mongoose.Schema({
         type: String,
     },
     f_kebeleDocument: {
-        type: String, 
+        type: String,
     },
     f_medicalDocument: {
-        type: String, 
+        type: String,
     },
     f_birthCertificate: {
-        type: String, 
+        type: String,
     },
-    
+    f_picture: {
+        type: String,
+    },
+
     // Foster mother's detail
     m_firstName: {
+        type: String,
+    },
+    m_middleName: {
         type: String,
     },
     m_lastName: {
@@ -44,9 +56,6 @@ const adoptiveParentSchema = new mongoose.Schema({
     m_phoneNumber: {
         type: Number,
     },
-    // m_email: {
-    //     type: String,
-    // },
     m_nationality: {
         type: String,
     },
@@ -54,13 +63,16 @@ const adoptiveParentSchema = new mongoose.Schema({
         type: String,
     },
     m_kebeleDocument: {
-        type: String, 
+        type: String,
     },
     m_medicalDocument: {
-        type: String, 
+        type: String,
     },
     m_birthCertificate: {
-        type: String, 
+        type: String,
+    },
+    m_picture: {
+        type: String,
     },
 
     // Additional Information
@@ -73,15 +85,24 @@ const adoptiveParentSchema = new mongoose.Schema({
     marriageCertificate: {
         type: String,
     },
-    // marriage_status: {
-    //     type: String,
-    //     enum: [
-    //         'married_status',
-    //         'single',
-    //     ]
-    // },
-
+    status: {
+        type: String,
+        default: "Not Child"
+      }
 });
+
+adoptiveParentSchema.pre('save', async function (next) {
+    if (this.isNew && !this.adoptiveParentId) {
+      let randomNumber;
+      let caseExists = true;
+      while (caseExists) {
+        randomNumber = Math.floor(1000 + Math.random() * 9000);
+        caseExists = await adoptiveParent.exists({ adoptiveParentId: 'AP' + randomNumber });
+      }
+      this.adoptiveParentId = 'AP' + randomNumber;
+    }
+    next();
+  });
 
 
 const adoptiveParent = mongoose.model('adoptiveParent', adoptiveParentSchema);

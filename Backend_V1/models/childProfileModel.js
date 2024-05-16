@@ -4,6 +4,9 @@ import mongoose from 'mongoose';
 const childProfileSchema = new mongoose.Schema({
 
     // Child Information
+    childId:{
+      type: String
+    },
     firstName: {
       type: String
     },
@@ -61,11 +64,30 @@ const childProfileSchema = new mongoose.Schema({
     cpaDocument: {
       type: String
     },
-    remarks: {
+    remark: {
       type: String
     },
     // Registration Information
-    admission: {},
+    admission: {
+      type: Date
+    },
+    status: {
+      type: String,
+      default: "Not assigned"
+    }
+});
+
+childProfileSchema.pre('save', async function (next) {
+  if (this.isNew && !this.childId) {
+    let randomNumber;
+    let caseExists = true;
+    while (caseExists) {
+      randomNumber = Math.floor(1000 + Math.random() * 9000);
+      caseExists = await childProfile.exists({ childId: 'CH' + randomNumber });
+    }
+    this.childId = 'CH' + randomNumber;
+  }
+  next();
 });
 
 const childProfile = mongoose.model('childProfile', childProfileSchema);

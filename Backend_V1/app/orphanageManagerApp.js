@@ -15,6 +15,7 @@ app.use(bodyParser.json());
 
 app.use(cors({ origin: 'http://localhost:5173' }));
 app.use('/Create_Child_Profile', childProfileRouter);
+app.use('/getChildProfile', childProfileRouter);
 // app.use('/marefiya/api/test', testRouter);
 app.use('/Create_Parent', adoptiveParentRouter);
 // app.use('/marefiya/api/case', caseRouter);

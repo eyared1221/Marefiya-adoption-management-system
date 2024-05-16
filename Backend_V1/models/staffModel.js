@@ -1,10 +1,41 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
-
-const orphanageStaffSchema = new mongoose.Schema({
+function generateRandomNumber() {
+    return Math.floor(1000 + Math.random() * 9000);
+  }
+  function generateStaffId(role) {
+    let prefix;
+    switch (role) {
+      case 'Orphanage Manager/Director':
+        prefix = 'OM';
+        break;
+      case 'Social Worker':
+        prefix = 'SW';
+        break;
+      case 'System Administrator':
+        prefix = 'SA';
+        break;
+      default:
+        prefix = 'UNK'; // Unknown role prefix
+    }
+  
+    return prefix + generateRandomNumber();
+  }
+const staffSchema = new mongoose.Schema({
 
     // Personal Information
+    staffId: {
+        type: String,
+        default: function() {
+            return generateStaffId(this.role);
+        },
+        unique: true
+    },
     firstName: {
+        type: String,
+    },
+    middleName: {
         type: String,
     },
     lastName: {
@@ -18,9 +49,6 @@ const orphanageStaffSchema = new mongoose.Schema({
     },
     phoneNumber: {
         type: Number,
-    },
-    nicNumber: {
-        type: String,
     },
     email: {
         type: String,
@@ -37,35 +65,32 @@ const orphanageStaffSchema = new mongoose.Schema({
     kebeleDocument: {
         type: String,
     },
-    selectedRole: {
+    role: {
         type: String,
         enum: [
             'Orphanage Manager/Director',
             'Social Worker',
-            'Caregivers/Nannies',
-            'Education Coordinator/Teacher',
-            'Medical Staff/Nurse',
-            'Psychologist/Counselor',
-            'Administrative Staff',
-            'Maintenance/Support Staff'
+            'System Administrator'
         ],
     },
-
-    // Affiliated organization 
-    organizationName: {
+    emergancyPersonFirstName: {
         type: String,
     },
-    selectedInteraction: {
+    emergancyPersonLastName: {
         type: String,
-        enum: [
-            'Employment',
-            'Contractual Agreement',
-            'Referral Network',
-            'Professional Association',
-            'Resource Sharing',
-            'Collaboration and Support',
-            'None'
-        ],
+    },
+    emergancyPersonPhone: {
+        type: String,
+    },
+    emergancyPersonAddress: {
+        type: String,
+    },
+    current_case: {
+        type: Number,
+        default: 0,
+        required: function() {
+            return this.role === 'Social Worker';
+        },
     },
 },
     {
@@ -73,8 +98,28 @@ const orphanageStaffSchema = new mongoose.Schema({
     }
 );
 
+staffSchema.pre('save', async function(next) {
+    if (!this.password) {
+        const currentYear = new Date().getFullYear();
+        this.password = `${this.last_name}@${currentYear}`;
+    }
+    if (!this.isModified('password')) return next();
 
-const orphanageStaff = mongoose.model('staff', orphanageStaffSchema);
+    const existingStaff = await this.constructor.findOne({ email: this.email });
+    if (existingStaff) {
+        const err = new Error('Email already exists');
+        return next(err);
+    }
+    
+    this.password = await bcrypt.hash(this.password, 12);
+    next();
+});
+    
+staffSchema.methods.comparePasswordInDb = async function(pswd) {
+return await bcrypt.compare(pswd, this.password);
+};
 
-export default orphanageStaff;
+const staff = mongoose.model('staff', staffSchema);
+
+export default staff;
 
